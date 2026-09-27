@@ -951,94 +951,37 @@
 
   <script>
 
-    /*
-      ==========================================
-      AUTOMATED WAITLIST COUNTER
-      ==========================================
+  const COUNTER_API =
+    "https://script.google.com/macros/s/AKfycbyPsmHs2YXWyXii-EPKmbIrNMjObK0GYwkdh2xogfKWvcicGyD_auDHftWv1ThNulD1/exec";
 
-      Replace this URL with your Google Apps
-      Script Web App URL.
+  async function updateCounter() {
+    try {
+      const response = await fetch(
+        COUNTER_API + "?t=" + Date.now()
+      );
 
-      Your Google Sheet should return:
+      const data = await response.json();
 
-      {
-        "count": 348
-      }
+      if (data.success) {
+        const count = Number(data.count) || 0;
 
-      Example:
-
-      https://script.google.com/macros/s/YOUR_ID/exec
-    */
-
-
-    const COUNTER_API =
-      "YOUR_GOOGLE_APPS_SCRIPT_URL";
-
-
-    const TARGET = 200;
-
-
-    async function updateCounter() {
-
-      try {
-
-        const response =
-          await fetch(COUNTER_API);
-
-        const data =
-          await response.json();
-
-
-        const count =
-          Number(data.count) || 0;
-
-
-        document.getElementById(
-          "waitlistCount"
-        ).textContent =
+        document.getElementById("waitlistCount").textContent =
           count.toLocaleString();
 
+        const progress = Math.min((count / 200) * 100, 100);
 
-        const percentage =
-          Math.min(
-            (count / TARGET) * 100,
-            100
-          );
-
-
-        document.getElementById(
-          "progressBar"
-        ).style.width =
-          percentage + "%";
-
-
-      } catch (error) {
-
-        console.log(
-          "Counter could not be loaded:",
-          error
-        );
-
+        document.getElementById("progressBar").style.width =
+          progress + "%";
       }
 
+    } catch (error) {
+      console.error("Counter error:", error);
     }
+  }
 
+  updateCounter();
 
-    /*
-      Load immediately
-    */
-
-    updateCounter();
-
-
-    /*
-      Automatically refresh every 30 seconds
-    */
-
-    setInterval(
-      updateCounter,
-      30000
-    );
+  setInterval(updateCounter, 30000);
 
   </script>
 
