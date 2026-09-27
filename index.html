@@ -949,79 +949,52 @@
        AUTOMATED COUNTER
   ========================= -->
 
- <script>
+<script>
 const COUNTER_API =
   "https://script.google.com/macros/s/AKfycbyPsmHs2YXWyXii-EPKmbIrNMjObK0GYwkdh2xogfKWvcicGyD_auDHftWv1ThNulD1/exec";
 
-let counterScript = null;
-
-function updateCounter() {
-
-  window.helplyCounter = function(data) {
-
-    if (!data.success) {
-      console.error("Counter API error:", data.error);
-      return;
-    }
-
-    const count = Number(data.count) || 0;
-
-    const countElement =
-      document.getElementById("waitlistCount");
-
-    const progressElement =
-      document.getElementById("progressBar");
-
-    if (countElement) {
-      countElement.textContent =
-        count.toLocaleString();
-    }
-
-    if (progressElement) {
-      const progress =
-        Math.min((count / 200) * 100, 100);
-
-      progressElement.style.width =
-        progress + "%";
-    }
-
-    console.log("Helply waitlist count:", count);
-  };
-
-
-  // Remove previous JSONP script
-  if (counterScript) {
-    counterScript.remove();
-  }
-
-
-  counterScript =
-    document.createElement("script");
-
-  counterScript.src =
-    COUNTER_API +
-    "?callback=helplyCounter&t=" +
-    Date.now();
-
-  counterScript.onerror = function() {
-    console.error(
-      "Unable to connect to Helply counter."
+async function updateCounter() {
+  try {
+    const response = await fetch(
+      COUNTER_API + "?t=" + Date.now(),
+      {
+        method: "GET",
+        cache: "no-store"
+      }
     );
-  };
 
-  document.body.appendChild(counterScript);
+    const data = await response.json();
+
+    console.log("Helply counter:", data);
+
+    if (data.success) {
+      const count = Number(data.count) || 0;
+
+      const counter = document.getElementById("waitlistCount");
+
+      if (counter) {
+        counter.textContent = count.toLocaleString();
+      }
+
+      const progressBar =
+        document.getElementById("progressBar");
+
+      if (progressBar) {
+        const progress =
+          Math.min((count / 200) * 100, 100);
+
+        progressBar.style.width = progress + "%";
+      }
+    }
+
+  } catch (error) {
+    console.error("Counter error:", error);
+  }
 }
 
-
-// Load immediately
 updateCounter();
 
-
-// Refresh every 30 seconds
-setInterval(
-  updateCounter,
-  30000
-);
+setInterval(updateCounter, 30000);
 </script>
 
 </body>
