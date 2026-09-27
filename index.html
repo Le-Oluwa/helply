@@ -949,42 +949,80 @@
        AUTOMATED COUNTER
   ========================= -->
 
-  <script>
+ <script>
+const COUNTER_API =
+  "https://script.google.com/macros/s/AKfycbyPsmHs2YXWyXii-EPKmbIrNMjObK0GYwkdh2xogfKWvcicGyD_auDHftWv1ThNulD1/exec";
 
-  const COUNTER_API =
-    "https://script.google.com/macros/s/AKfycbyPsmHs2YXWyXii-EPKmbIrNMjObK0GYwkdh2xogfKWvcicGyD_auDHftWv1ThNulD1/exec";
+let counterScript = null;
 
-  async function updateCounter() {
-    try {
-      const response = await fetch(
-        COUNTER_API + "?t=" + Date.now()
-      );
+function updateCounter() {
 
-      const data = await response.json();
+  window.helplyCounter = function(data) {
 
-      if (data.success) {
-        const count = Number(data.count) || 0;
-
-        document.getElementById("waitlistCount").textContent =
-          count.toLocaleString();
-
-        const progress = Math.min((count / 200) * 100, 100);
-
-        document.getElementById("progressBar").style.width =
-          progress + "%";
-      }
-
-    } catch (error) {
-      console.error("Counter error:", error);
+    if (!data.success) {
+      console.error("Counter API error:", data.error);
+      return;
     }
+
+    const count = Number(data.count) || 0;
+
+    const countElement =
+      document.getElementById("waitlistCount");
+
+    const progressElement =
+      document.getElementById("progressBar");
+
+    if (countElement) {
+      countElement.textContent =
+        count.toLocaleString();
+    }
+
+    if (progressElement) {
+      const progress =
+        Math.min((count / 200) * 100, 100);
+
+      progressElement.style.width =
+        progress + "%";
+    }
+
+    console.log("Helply waitlist count:", count);
+  };
+
+
+  // Remove previous JSONP script
+  if (counterScript) {
+    counterScript.remove();
   }
 
-  updateCounter();
 
-  setInterval(updateCounter, 30000);
+  counterScript =
+    document.createElement("script");
 
-  </script>
+  counterScript.src =
+    COUNTER_API +
+    "?callback=helplyCounter&t=" +
+    Date.now();
 
+  counterScript.onerror = function() {
+    console.error(
+      "Unable to connect to Helply counter."
+    );
+  };
+
+  document.body.appendChild(counterScript);
+}
+
+
+// Load immediately
+updateCounter();
+
+
+// Refresh every 30 seconds
+setInterval(
+  updateCounter,
+  30000
+);
+</script>
 
 </body>
 </html>
